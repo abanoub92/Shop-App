@@ -1,4 +1,4 @@
-#Thu May 07 21:20:40 EET 2020
+#Tue May 12 20:20:55 EET 2020
 base.0=/home/abanoub/IDEs/AndroidStudio/FlutterProjects/ShopApp/build/app/intermediates/dex/debug/mergeDexDebug/out/classes.dex
 path.0=classes.dex
 renamed.0=classes.dex
