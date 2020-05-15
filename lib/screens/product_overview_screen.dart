@@ -1,34 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/product_provider.dart';
-import '../widgets/product_item.dart';
+import 'package:shop_app/providers/cart_provider.dart';
+import 'package:shop_app/widgets/badge.dart';
+import 'package:shop_app/widgets/product_grid.dart';
 
-class ProductOverviewScreen extends StatelessWidget {
+enum FilterOptions{
+  Favorite,
+  All,
+}
+
+class ProductOverviewScreen extends StatefulWidget {
   
   @override
+  _ProductOverviewScreenState createState() => _ProductOverviewScreenState();
+}
+
+class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
+
+  var _showOnlyFavorites = false;
+
+  @override
   Widget build(BuildContext context) {
-
-    final productData = Provider.of<ProductProvider>(context);
-    final product = productData.items;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Shop App'),
+        actions: <Widget>[
+          PopupMenuButton(
+            onSelected: (selectedValue){
+              setState(() {
+                if (selectedValue == FilterOptions.Favorite){
+                  _showOnlyFavorites = true;
+                }else {
+                  _showOnlyFavorites = false;
+                }
+              });
+            },
+            icon: Icon(Icons.more_vert),
+            itemBuilder: (_) => [
+              PopupMenuItem(child: Text('Favorite'), value: FilterOptions.Favorite,),
+              PopupMenuItem(child: Text('Show All'), value: FilterOptions.All,)
+            ],
+          ),
+          Consumer<CartProvider> (
+            builder: (_, cart, ch){
+              return Badge(
+                child: ch, 
+                value: cart.itemsCount.toString(),
+              );
+            },
+            child: IconButton(icon: Icon(Icons.shopping_cart), onPressed: (){}),
+          ),
+        ],
       ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(10),
-        itemCount: product.length,
-        itemBuilder: (context, index) => ChangeNotifierProvider(
-            create: (ctx) => product[index],
-            child: ProductItem(),
-        ),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3 / 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-      ),
+      body: ProductGrid(_showOnlyFavorites),
     );
   }
 }

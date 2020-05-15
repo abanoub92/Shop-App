@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/cart_provider.dart';
 import '../screens/product_details_screen.dart';
 import '../providers/product.dart';
 
@@ -9,7 +10,8 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
 
     final product = Provider.of<Product>(context);
-    
+    final cart = Provider.of<CartProvider>(context, listen: false);
+
     return ClipRRect(
        borderRadius: BorderRadius.circular(10),
        child: GridTile(
@@ -22,17 +24,23 @@ class ProductItem extends StatelessWidget {
         footer: GridTileBar(
           backgroundColor: Colors.black87,
           title: Text(product.title),
-          leading: IconButton(
-            icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
-            color: Theme.of(context).accentColor, 
-            onPressed: (){
-              product.isRealyFavorite();
+          leading: Consumer<Product>(
+            builder: (ctx, product, _){
+              return IconButton(
+                icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
+                color: Theme.of(context).accentColor, 
+                onPressed: (){
+                  product.isRealyFavorite();
+                },
+              );
             },
           ),
           trailing: IconButton(
             icon: Icon(Icons.shopping_cart),
             color: Theme.of(context).accentColor, 
-            onPressed: (){},
+            onPressed: (){
+              cart.addItem(product.id, product.title, product.price);             
+            },
           ),
         ),
       ),
