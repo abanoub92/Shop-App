@@ -16,6 +16,27 @@ class CartItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dismissible(
       key: ValueKey(id),
+
+      /**
+       * We pass true and false to Navigator.of(ctx).pop(bool)
+       * because confirmDismiss method return a Future.value(bool).
+       * means confirm or cancel
+       * and the alertDialog do the same so we pass the return value
+       * to pop navigator, because the alert dialog reurn the value 
+       * after closing the dialog.
+       */
+      confirmDismiss: (direction){
+        return showDialog(context: context, builder: (ctx){
+          return AlertDialog(
+            title: Text('Delete Product'),
+            content: Text('Do you want to delete item from cart?'),
+            actions: <Widget>[
+              FlatButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text('No')),
+              FlatButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text('Yes'))
+            ],
+          );
+        });
+      },
       background: Container(
         color: Theme.of(context).errorColor,
         child: Icon(Icons.delete, color: Colors.white, size: 40,),
