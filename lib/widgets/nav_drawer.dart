@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shop_app/screens/order_screen.dart';
+import 'package:shop_app/screens/user_product_screen.dart';
 
 class NavDrawer extends StatelessWidget {
 
@@ -59,6 +60,13 @@ class NavDrawer extends StatelessWidget {
             Icons.credit_card, 
             'Orders', 
             () => Navigator.of(context).pushReplacementNamed(OrderScreen.route_name),
+          ),
+
+          drawerItem(
+            context,
+            Icons.edit, 
+            'Manage Products', 
+            () => Navigator.of(context).pushReplacementNamed(UserProductScreen.route_name),
           ),
         ],
       ),
