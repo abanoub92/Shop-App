@@ -20,6 +20,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _formKey = GlobalKey<FormState>();
 
   var _isInit = true;
+  var _isLoading = false;
 
   var _initValues = {'title': '', 'description': '', 'price': '', 'imageUrl': ''};
 
@@ -35,19 +36,72 @@ class _EditProductScreenState extends State<EditProductScreen> {
     }
   }
 
-  void _saveForm(){
+  Future<void> _saveForm() async {
     if (!_formKey.currentState.validate()){
       return;
     }
     _formKey.currentState.save();
+    setState(() {
+      _isLoading = true;
+    });
     if (_editedProduct.id != null){
       Provider.of<ProductProvider>(context, listen: false).updateProduct(_editedProduct.id, _editedProduct);
+      setState(() {
+        _isLoading = false;
+      });
+      Navigator.of(context).pop();
     }else {
-      Provider.of<ProductProvider>(context, listen: false).addProduct(_editedProduct);
+      try {
+        await Provider.of<ProductProvider>(context, listen: false)
+        .addProduct(_editedProduct);
+      } catch(error){
+        //we use await here to force finally method to stop excute
+        //until the dialog is close then excute finally function 
+        await showDialog(context: context, builder: (ctx){
+          return AlertDialog(
+            title: Text('An error occurred!'),
+            content: Text(error.toString()),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () => Navigator.of(ctx).pop(), 
+                child: Text('Okey'),
+              ),
+            ],
+          );
+        });
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.of(context).pop();
+      }
     }
-    Navigator.of(context).pop();
   }
  
+  /*
+   Provider.of<ProductProvider>(context, listen: false).addProduct(_editedProduct)
+      .catchError((error){
+        showDialog(context: context, builder: (ctx){
+          return AlertDialog(
+            title: Text('An error occurred!'),
+            content: Text(error.toString()),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () => Navigator.of(ctx).pop(), 
+                child: Text('Okey'),
+              ),
+            ],
+          );
+        });
+      })
+      .then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.of(context).pop();   
+      }); 
+   */
+
   @override
   void initState(){
     //bind the focus listener when state initialize
@@ -97,7 +151,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
           IconButton(icon: Icon(Icons.save), onPressed: () => _saveForm()),
         ],
       ),
-      body: Padding(
+      body: _isLoading 
+      ? Center(
+         child: CircularProgressIndicator(),
+        )
+      : Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,

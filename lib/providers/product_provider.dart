@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import './product.dart';
 
@@ -53,18 +55,79 @@ class ProductProvider with ChangeNotifier {
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  void addProduct(Product product){
-    final newProduct = Product(
-      id: DateTime.now().toString(), 
-      title: product.title, 
-      description: product.description, 
-      price: product.price, 
-      imageUrl: product.imageUrl,
-    );
-    _items.add(newProduct);   //add item to the end of the list
-    //_items.insert(0, newProduct);  //add item to the start of the list
-    notifyListeners();
+  Future<void> fetchProductsList() async {
+    const url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json';
+
+    try {
+      final response = await http.get(url);
+      print(json.decode(response.body).toString());
+    } catch (error){
+      print(error);
+    }
   }
+
+  /*
+   * async convert the function from void to Furture<R>
+   * return type (make the function runs on background thread).
+   * 
+   * await force the compiler to wait these lines of code
+   * until the process is done and compile what cames next
+   * (samply it take a place of then() function).
+   */
+  Future<void> addProduct(Product product) async {
+    const url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json'; //.json added for firebase endpoint only
+    
+    try {
+      final response = await http.post(url, body: json.encode({
+        'title': product.title,
+        'description': product.description,
+        'imageUrl': product.imageUrl,
+        'price': product.price,
+        'isFavorite': product.isFavorite,
+      }),);
+    
+      final newProduct = Product(
+          id: json.decode(response.body)['name'], 
+          title: product.title, 
+          description: product.description, 
+          price: product.price, 
+          imageUrl: product.imageUrl,
+        );
+      _items.add(newProduct);   //add item to the end of the list
+      //_items.insert(0, newProduct);  //add item to the start of the list
+      notifyListeners();
+    
+    } catch (error){
+      print(error);
+      throw error;
+    }
+
+  }
+
+  // Future<void> addProduct(Product product) {
+  //   const url = 'https://onlinestoreapp-a44eb.firebaseio.com/products'; //.json added for firebase endpoint only
+  //   return http.post(url, body: json.encode({
+  //     'title': product.title,
+  //     'description': product.description,
+  //     'imageUrl': product.imageUrl,
+  //     'price': product.price,
+  //     'isFavorite': product.isFavorite,
+  //   }),).then((response) {
+  //     final newProduct = Product(
+  //       id: json.decode(response.body)['name'], 
+  //       title: product.title, 
+  //       description: product.description, 
+  //       price: product.price, 
+  //       imageUrl: product.imageUrl,
+  //     );
+  //     _items.add(newProduct);   //add item to the end of the list
+  //     //_items.insert(0, newProduct);  //add item to the start of the list
+  //     notifyListeners();
+  //   }).catchError((error){
+  //     print(error);
+  //     throw error;
+  //   });
+  // }
 
   void updateProduct(String id, Product newProduct){
     final prodIndex = _items.indexWhere((product) => product.id == id);

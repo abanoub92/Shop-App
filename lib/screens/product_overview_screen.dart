@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/product_provider.dart';
 import '../providers/cart_provider.dart';
 import './cart_screen.dart';
 import '../widgets/badge.dart';
@@ -20,6 +21,30 @@ class ProductOverviewScreen extends StatefulWidget {
 class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
 
   var _showOnlyFavorites = false;
+  var _isLoading = true;
+
+  @override
+  void initState() {
+    //won't work because any .of(context) function does not work here
+    // it could propably work if you add listen: false
+    //Provider.of<ProductProvider>(context).fetchProductsList(); 
+
+    //result for this problem, but it's not recommended
+    //and this result will get an error, to avoid it add listen to false
+    // Future.delayed(Duration.zero).then((_){
+    //   Provider.of<ProductProvider>(context).fetchProductsList();
+    // });
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_isLoading){
+      Provider.of<ProductProvider>(context).fetchProductsList();
+    }
+    _isLoading = false;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
