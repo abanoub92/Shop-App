@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/providers/cart_provider.dart';
+import '../providers/cart_provider.dart';
 import '../screens/product_details_screen.dart';
 import '../providers/product.dart';
 
@@ -11,6 +11,7 @@ class ProductItem extends StatelessWidget {
 
     final product = Provider.of<Product>(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
+    final scaffold = Scaffold.of(context);
 
     return ClipRRect(
        borderRadius: BorderRadius.circular(10),
@@ -40,8 +41,8 @@ class ProductItem extends StatelessWidget {
             color: Theme.of(context).accentColor, 
             onPressed: (){
               cart.addItem(product.id, product.title, product.price);
-              Scaffold.of(context).hideCurrentSnackBar();
-              Scaffold.of(context).showSnackBar(
+              scaffold.hideCurrentSnackBar();
+              scaffold.showSnackBar(
                 SnackBar(
                   content: Text('Add item to the cart'),
                   duration: Duration(seconds: 2,),
