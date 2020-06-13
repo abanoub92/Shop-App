@@ -6,7 +6,7 @@ import './product.dart';
 
 class ProductProvider with ChangeNotifier {
 
-  List<Product> _items = [
+  List<Product> products = [
     // Product(
     //   id: 'p1',
     //   title: 'Red Shirt',
@@ -41,14 +41,18 @@ class ProductProvider with ChangeNotifier {
     // ),
   ];
 
+  final String authToken;
+
+  ProductProvider({this.authToken, this.products});
+
   /* get the list of products data */
   List<Product> get items {
-    return _items;
+    return products;
   }
 
   /* get the favorite list */
   Future<void> fetchFavorites() async {
-    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json';
+    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json?auth=$authToken';
     final response = await http.get(url, headers: { 'isFavorite': 'true',});
     //notifyListeners();
 
@@ -57,16 +61,16 @@ class ProductProvider with ChangeNotifier {
     }
   }
   List<Product> get favoriteItems{
-    return _items.where((prod) => prod.isFavorite).toList();
+    return products.where((prod) => prod.isFavorite).toList();
   }
 
   /* get product item by id */
   Product findById(String id){
-    return _items.firstWhere((prod) => prod.id == id);
+    return products.firstWhere((prod) => prod.id == id);
   }
 
   Future<void> fetchProductsList() async {
-    const url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json';
+    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json?auth=$authToken';
 
     try {
       final response = await http.get(url);
@@ -86,7 +90,7 @@ class ProductProvider with ChangeNotifier {
           imageUrl: prodData['imageUrl']
         ));
       });
-      _items = loadedProduct;
+      products = loadedProduct;
     } catch (error){
       print(error);
     }
@@ -101,7 +105,7 @@ class ProductProvider with ChangeNotifier {
    * (samply it take a place of then() function).
    */
   Future<void> addProduct(Product product) async {
-    const url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json'; //.json added for firebase endpoint only
+    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json?auth=$authToken'; //.json added for firebase endpoint only
     
     try {
       final response = await http.post(url, body: json.encode({
@@ -119,7 +123,7 @@ class ProductProvider with ChangeNotifier {
           price: product.price, 
           imageUrl: product.imageUrl,
         );
-      _items.add(newProduct);   //add item to the end of the list
+      products.add(newProduct);   //add item to the end of the list
       //_items.insert(0, newProduct);  //add item to the start of the list
       notifyListeners();
     
@@ -156,8 +160,8 @@ class ProductProvider with ChangeNotifier {
   // }
 
   Future<void> updateProduct(String id, Product newProduct) async {
-    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products/$id.json';
-    final prodIndex = _items.indexWhere((product) => product.id == id);
+    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products/$id.json?auth=$authToken';
+    final prodIndex = products.indexWhere((product) => product.id == id);
     if (prodIndex >= 0){
       try {
         await http.patch(url, body: json.encode({
@@ -166,7 +170,7 @@ class ProductProvider with ChangeNotifier {
           'imageUrl': newProduct.imageUrl,
           'price': newProduct.price,
         }));
-        _items[prodIndex] = newProduct;
+        products[prodIndex] = newProduct;
         notifyListeners();
       } catch (error){
         print(error);
@@ -177,13 +181,13 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> deleteProduct(String id) async {
-    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products/$id.json';
+    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products/$id.json?auth=$authToken';
     // get the index of product in a list
-    final existingProductIndex = _items.indexWhere((product) => product.id == id); 
+    final existingProductIndex = products.indexWhere((product) => product.id == id); 
     // store the product in a memory (just in case).
-    var existingProduct = _items[existingProductIndex];
+    var existingProduct = products[existingProductIndex];
     // remove it from the list (but still stored in memory)
-    _items.removeWhere((product) => product.id == id);
+    products.removeWhere((product) => product.id == id);
     notifyListeners();
 
     // make a delete request from a server
@@ -193,7 +197,7 @@ class ProductProvider with ChangeNotifier {
       existingProduct = null;
     }else if (response.statusCode >= 400){
       // if it fail return the product to the list from memory
-      _items.insert(0, existingProduct);
+      products.insert(0, existingProduct);
       notifyListeners();
       throw HttpException('Could not delete product.');
     }
