@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shop_app/providers/auth_provider.dart';
 import 'package:shop_app/screens/order_screen.dart';
 import 'package:shop_app/screens/user_product_screen.dart';
 
@@ -67,6 +69,18 @@ class NavDrawer extends StatelessWidget {
             Icons.edit, 
             'Manage Products', 
             () => Navigator.of(context).pushReplacementNamed(UserProductScreen.route_name),
+          ),
+
+          drawerItem(
+            context,
+            Icons.exit_to_app, 
+            'Logout', 
+            () {
+              //close drawer before logout 
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacementNamed('/');
+              Provider.of<AuthProvider>(context, listen: false).logout();
+            },
           ),
         ],
       ),

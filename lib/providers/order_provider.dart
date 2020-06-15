@@ -21,21 +21,27 @@ class Order {
 
 class OrderProvider with ChangeNotifier{
 
-  List<Order> _items = [];
+  List<Order> orders = [];
+
+  final authToken;
+  final userId;
+
+  OrderProvider({this.authToken, this.userId, this.orders});
+
 
   List<Order> get items{
-    return _items;
+    return orders;
   }
 
   Future<void> fetchOrders() async {
-    const url = 'https://onlinestoreapp-a44eb.firebaseio.com/orders.json';
+    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/orders/$userId.json?auth=$authToken';
     final response = await http.get(url);
     final extractedData = json.decode(response.body) as Map<String, dynamic>;
     if (extractedData == null){
       return;
     }
 
-    final List<Order> loadedData = [];
+    List<Order> loadedData = [];
     extractedData.forEach((orderId, orderData) {
       loadedData.add(Order(
         id: orderId,
@@ -52,7 +58,7 @@ class OrderProvider with ChangeNotifier{
       ));
     });
 
-    _items = loadedData.reversed.toList(); //reversed.toList() to reverse data and show the new in first item
+    orders = loadedData.reversed.toList(); //reversed.toList() to reverse data and show the new in first item
     notifyListeners();
   }
 
@@ -60,40 +66,43 @@ class OrderProvider with ChangeNotifier{
    * add order if products they are in shopping cart 
    */
   Future<void> addOrder(List<Cart> products, double amount) async {
-    const url = 'https://onlinestoreapp-a44eb.firebaseio.com/orders.json';
+    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/orders/$userId.json?auth=$authToken';
     final timeStamp = DateTime.now();
     
-    final response = await http.post(url, 
-    body: json.encode({
-      'amount': amount,
-      'dateTime': timeStamp.toIso8601String(),
-      'products': products.map((cp) => {
-        'id': cp.id,
-        'title': cp.title,
-        'quantity': cp.quantity,
-        'price': cp.price,
-      }).toList(),
-    }));
-    
-    _items.insert(0, 
-      Order(
+    try {
+      final response = await http.post(url, 
+      body: json.encode({
+        'amount': amount,
+        'dateTime': timeStamp.toIso8601String(),
+        'products': products.map((cp) => {
+          'id': cp.id,
+          'title': cp.title,
+          'quantity': cp.quantity,
+          'price': cp.price,
+        }).toList(),
+      }));
+      
+      final order = Order(
         id: json.decode(response.body)['name'],
         amount: amount,
         dateTime: timeStamp,
         products: products,
-      )
-    );
+      );
 
-    notifyListeners();
+      orders.add(order);
+      notifyListeners();
+    } catch(error){
+      print(error);
+    }
   }
 
   void removeItem(productId){
-    _items.remove(productId);
+    orders.remove(productId);
     notifyListeners();
   }
 
   void clearItems(){
-    _items = [];
+    orders = [];
     notifyListeners();
   }
 

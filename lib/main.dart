@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/providers/product.dart';
-import 'package:shop_app/screens/product_overview_screen.dart';
+import 'package:shop_app/screens/splash_screen.dart';
 
+import './screens/product_overview_screen.dart';
 import './screens/auth_screen.dart';
 import './screens/edit_product_screen.dart';
 import './screens/order_screen.dart';
@@ -38,15 +38,22 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<AuthProvider, ProductProvider>(
           update: (context, auth, previousProducts) => ProductProvider(
             authToken: auth.token, 
-            products: previousProducts == null ? [] : previousProducts.items), 
+            userId: auth.userId,
+            products: previousProducts == null ? [] : previousProducts.items
+          ), 
           create: (_) => ProductProvider(),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, OrderProvider>(
+          update: (ctx, auth, previousOrder) => OrderProvider(
+            authToken: auth.token,
+            userId: auth.userId,
+            orders: previousOrder == null ? [] : previousOrder.items,
+          ),
+          create: (_) => OrderProvider(),
         ),
         ChangeNotifierProvider.value(
           value: CartProvider(),
         ),
-        ChangeNotifierProvider.value(
-          value: OrderProvider(),
-        )
       ],
       child: Consumer<AuthProvider> (
         builder: (ctx, auth, _) => MaterialApp(
@@ -57,10 +64,17 @@ class MyApp extends StatelessWidget {
             accentColor: Colors.deepOrange,
             fontFamily: 'Lato'
           ),
-          home: auth.isAuth ? ProductOverviewScreen() : AuthScreen(),
+          home: auth.isAuth 
+          ? ProductOverviewScreen() 
+          : FutureBuilder(
+            future: auth.autoLoginWithStoredData(),
+            builder: (ctx, autoResultSnapshot) => 
+              autoResultSnapshot.connectionState == ConnectionState.waiting
+              ? SplashScreen() : AuthScreen()
+          ),
           routes: {
-            ProductOverviewScreen.route_name: (ctx) => ProductOverviewScreen(),
-            ProductDetailsScreen.route_name: (context) => ProductDetailsScreen(),
+            ProductOverviewScreen.route_name: (_) => ProductOverviewScreen(),
+            ProductDetailsScreen.route_name: (_) => ProductDetailsScreen(),
             CartScreen.route_name: (_) => CartScreen(),
             OrderScreen.route_name: (_) => OrderScreen(),
             UserProductScreen.route_name: (_) => UserProductScreen(),

@@ -10,14 +10,16 @@ class UserProductScreen extends StatelessWidget {
   static const route_name = '/user-products';
 
   Future<void> _refreshProducts(BuildContext context) async {
-    await Provider.of<ProductProvider>(context, listen: false).fetchProductsList();
+    await Provider.of<ProductProvider>(context, listen: false).fetchProductsList(true);
   }
 
 
   @override
   Widget build(BuildContext context) {
 
-    final productData = Provider.of<ProductProvider>(context);
+    // we will use consumer instead of this 
+    // (because with future builder it make an infinte build)
+    //final productData = Provider.of<ProductProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -29,18 +31,26 @@ class UserProductScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshProducts(context),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ListView.builder(
-            itemCount: productData.items.length, 
-            itemBuilder: (ctx, index){
-              return UserProductItem(
-                productData.items.elementAt(index).id,
-                productData.items.elementAt(index).imageUrl, 
-                productData.items.elementAt(index).title);        
-            },
+      body: FutureBuilder(
+        future: _refreshProducts(context),
+        builder: (ctx, snapshot) => 
+        snapshot.connectionState == ConnectionState.waiting 
+        ? Center(child: CircularProgressIndicator(),)
+        : RefreshIndicator(
+          onRefresh: () => _refreshProducts(context),
+          child: Consumer<ProductProvider> (
+            builder: (ctx, product, child) => Padding(
+              padding: const EdgeInsets.all(8),
+              child: ListView.builder(
+                itemCount: product.items.length, 
+                itemBuilder: (ctx, index){
+                  return UserProductItem(
+                    product.items.elementAt(index).id,
+                    product.items.elementAt(index).imageUrl, 
+                    product.items.elementAt(index).title);        
+                },
+              ),
+            ),
           ),
         ),
       ),

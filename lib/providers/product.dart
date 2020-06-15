@@ -25,16 +25,14 @@ class Product with ChangeNotifier{
     notifyListeners();
   }
 
-  Future<void> isRealyFavorite() async {
+  Future<void> isRealyFavorite(String token, String userId) async {
     final oldValue = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
     
     try{
-      final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products/$id.json';
-      final response = await http.patch(url, body: json.encode({
-        'isFavorite': isFavorite,
-      }));   
+      final url = 'https://onlinestoreapp-a44eb.firebaseio.com/favorites/$userId/$id.json?auth=$token';
+      final response = await http.put(url, body: json.encode(isFavorite));   
 
       if (response.statusCode == 200){
         print('product become a favorite.');

@@ -42,8 +42,9 @@ class ProductProvider with ChangeNotifier {
   ];
 
   final String authToken;
+  final String userId;
 
-  ProductProvider({this.authToken, this.products});
+  ProductProvider({this.authToken, this.userId, this.products});
 
   /* get the list of products data */
   List<Product> get items {
@@ -69,8 +70,10 @@ class ProductProvider with ChangeNotifier {
     return products.firstWhere((prod) => prod.id == id);
   }
 
-  Future<void> fetchProductsList() async {
-    final url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json?auth=$authToken';
+  //to add default value to parameter: add the param var in [bool filteredByUser = false]
+  Future<void> fetchProductsList([bool filteredByUser = false]) async {
+    final filterUrl = filteredByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+    var url = 'https://onlinestoreapp-a44eb.firebaseio.com/products.json?auth=$authToken&$filterUrl';
 
     try {
       final response = await http.get(url);
@@ -79,6 +82,11 @@ class ProductProvider with ChangeNotifier {
         return;
       }
       
+      //get the favorites products
+      url = 'https://onlinestoreapp-a44eb.firebaseio.com/favorites/$userId.json?auth=$authToken';
+      final favoriteResponse = await http.get(url);
+      final favoriteData = json.decode(favoriteResponse.body);
+
       final List<Product> loadedProduct = [];
       extractedData.forEach((prodId, prodData) {
         loadedProduct.add(Product(
@@ -86,8 +94,9 @@ class ProductProvider with ChangeNotifier {
           title: prodData['title'],
           description: prodData['description'],
           price: prodData['price'],
-          isFavorite: prodData['isFavorite'],
-          imageUrl: prodData['imageUrl']
+          imageUrl: prodData['imageUrl'],
+          //check every product is a favorite
+          isFavorite: favoriteData == null ? false : favoriteData[prodId] ?? false, //?? check if the product == null too
         ));
       });
       products = loadedProduct;
@@ -113,7 +122,7 @@ class ProductProvider with ChangeNotifier {
         'description': product.description,
         'imageUrl': product.imageUrl,
         'price': product.price,
-        'isFavorite': product.isFavorite,
+        'creatorId': userId,
       }),);
     
       final newProduct = Product(
