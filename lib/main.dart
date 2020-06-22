@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/helpers/custom_page_transition_builder.dart';
 import 'package:shop_app/screens/splash_screen.dart';
 
 import './screens/product_overview_screen.dart';
@@ -62,7 +63,12 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.purple,
             accentColor: Colors.deepOrange,
-            fontFamily: 'Lato'
+            fontFamily: 'Lato',
+            //apply a transition on all page routes in android and ios
+            pageTransitionsTheme: PageTransitionsTheme(builders: {
+              TargetPlatform.android: CustomPageTransitionBuilder(),
+              TargetPlatform.iOS: CustomPageTransitionBuilder(),
+            }),
           ),
           home: auth.isAuth 
           ? ProductOverviewScreen() 

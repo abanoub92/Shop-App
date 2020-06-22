@@ -35,21 +35,30 @@ class ProductDetailsScreen extends StatelessWidget {
     return Consumer<ProductProvider>(
       builder: (ctx, data, child){
         return Scaffold(
-          appBar: AppBar(
-            title: Text(data.findById(productId).title),
-          ),
-          body: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  height: 300,
-                  width: double.infinity,
-                  child: Image.network(data.findById(productId).imageUrl, fit: BoxFit.cover,)
+          // appBar: AppBar(
+          //   title: Text(data.findById(productId).title),
+          // ),
+          //how to make an image with appbar animation
+          body: CustomScrollView(
+            //slivers are scrollable area on screen
+            slivers: <Widget>[
+              SliverAppBar(
+                expandedHeight: 300,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text(data.findById(productId).title),
+                  background: Hero(
+                    tag: productId,
+                    child: Image.network(data.findById(productId).imageUrl, fit: BoxFit.cover,)
+                  ),
                 ),
+              ),
+              SliverList(delegate: SliverChildListDelegate([
                 SizedBox(height: 10,),
                 Text(
                   '\$ ${data.findById(productId).price}',
                   style: TextStyle(color: Colors.grey, fontSize: 20,),
+                  textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 10,),
                 Container(
@@ -57,8 +66,11 @@ class ProductDetailsScreen extends StatelessWidget {
                   width: double.infinity,
                   child: Text(data.findById(productId).description, textAlign: TextAlign.center, softWrap: true,),
                 ),
-              ],
-            ),
+
+                //dummy widget to makes us scroll the screen
+                SizedBox(height: 800,)
+              ])),
+            ],
           ),
         );
       },

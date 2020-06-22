@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/providers/auth_provider.dart';
-import 'package:shop_app/screens/order_screen.dart';
-import 'package:shop_app/screens/user_product_screen.dart';
+
+import '../providers/auth_provider.dart';
+import '../screens/order_screen.dart';
+import '../screens/user_product_screen.dart';
+import '../helpers/custom_page_route.dart';
 
 class NavDrawer extends StatelessWidget {
 
@@ -61,7 +63,11 @@ class NavDrawer extends StatelessWidget {
             context,
             Icons.credit_card, 
             'Orders', 
-            () => Navigator.of(context).pushReplacementNamed(OrderScreen.route_name),
+            () {
+              //Navigator.of(context).pushReplacementNamed(OrderScreen.route_name);
+              //add custom page fade transition
+              Navigator.of(context).pushReplacement(CustomPageRoute(builder: (ctx) => OrderScreen()));
+            }
           ),
 
           drawerItem(
